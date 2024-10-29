@@ -5,6 +5,7 @@ namespace App\Models;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use App\Models\EmailOrPasswordIncorrectException;
 
 class UserAccount extends Model {
 
@@ -21,18 +22,20 @@ class UserAccount extends Model {
         self::PASSWORD
     ];
 
-    static function login(string $email, string $password): bool {
+    static function login(string $email, string $password): Result
+    {
         try {
             $user = self::where(self::EMAIL, $email)->first();
 
-            if($user && Hash::check($password, $user->password)) {
-                return true;
+            if ($user && Hash::check($password, $user->password)) {
+                return Result::success(null);
             }
 
-        } catch(Exception $e) {
+            return Result::error(new EmailOrPasswordIncorrectException());
 
+        } catch (Exception $e) {
+            return Result::error($e);
         }
-        return false;
     }
 
     static function register(string $email, string $password): bool {
@@ -47,7 +50,7 @@ class UserAccount extends Model {
                 return true;
             }
         } catch(Exception $e) {
-            
+
         }
         return false;
     }
@@ -63,7 +66,7 @@ class UserAccount extends Model {
                 return true;
             }
         } catch(Exception $e) {
-            
+
         }
         return false;
     }

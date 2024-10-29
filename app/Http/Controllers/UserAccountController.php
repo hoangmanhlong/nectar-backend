@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\Error;
+use App\Models\Success;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserAccount;
 
-class UserAccountController extends Controller {
+class UserAccountController extends Controller
+{
 
     private $loginDataRule = [
         UserAccount::EMAIL => ['required', 'email', 'string'],
@@ -20,39 +23,51 @@ class UserAccountController extends Controller {
         UserAccount::NEW_PASSWORD => ['required', 'string'],
     ];
 
-    function login(Request $request) {
+    function login(Request $request): JsonResponse
+    {
 
         $params = $request->all();
 
         $validator = Validator::make($params, $this->loginDataRule);
 
-        if($validator->fails()) {
-            return response()->json(['status' => 422, 'message' => 'Request data invalid']);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => $validator->errors()
+            ]);
         }
 
         $loginResult = UserAccount::login(
             $params[UserAccount::EMAIL],
-             $params[UserAccount::PASSWORD]
+            $params[UserAccount::PASSWORD]
         );
 
+        if ($loginResult instanceof Success) {
+            return response()->json([
+                'status' => 200,
+                'message' => 'Login success',
+            ]);
+        }
+
         return response()->json([
-            'status' => $loginResult ? 200 : 500,
-            'message' => $loginResult ? 'Success' : 'Invalid'
+            'status' => 500,
+            'message' => ($loginResult instanceof Error) ? $loginResult->exception->getMessage() : ''
         ]);
     }
 
-    function register(Request $request) {
+    function register(Request $request): JsonResponse
+    {
         $params = $request->all();
 
         $validator = Validator::make($params, $this->loginDataRule);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json(['status' => 422, 'message' => 'Request data invalid']);
         }
 
         $registerResult = UserAccount::register(
             $params[UserAccount::EMAIL],
-             $params[UserAccount::PASSWORD]
+            $params[UserAccount::PASSWORD]
         );
 
         return response()->json([
@@ -61,12 +76,13 @@ class UserAccountController extends Controller {
         ]);
     }
 
-    function changePassword(Request $request) {
+    function changePassword(Request $request): JsonResponse
+    {
         $params = $request->all();
 
         $validator = Validator::make($params, $this->changePasswordRule);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json(['status' => 422, 'message' => 'Request data invalid']);
         }
 
