@@ -62,7 +62,7 @@ class UserAccountController extends Controller
         $validator = Validator::make($params, $this->loginDataRule);
 
         if ($validator->fails()) {
-            return response()->json(['status' => 422, 'message' => 'Request data invalid']);
+            return response()->json(['status' => 422, 'message' => 'Request data invalid'], 422);
         }
 
         $registerResult = UserAccount::register(

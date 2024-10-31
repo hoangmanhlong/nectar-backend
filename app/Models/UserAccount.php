@@ -3,24 +3,56 @@
 namespace App\Models;
 
 use Exception;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use App\Models\EmailOrPasswordIncorrectException;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class UserAccount extends Model {
+class UserAccount extends Authenticatable implements JWTSubject {
+
+    use Notifiable;
 
     const ID = 'id';
     const EMAIL = 'email';
     const PASSWORD = 'password';
     const NEW_PASSWORD = 'new_password';
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
 
     protected $table = 'user_account';
 
     protected $fillable = [
-        self::ID,
         self::EMAIL,
         self::PASSWORD
     ];
+
+    protected $hidden = [
+        self::ID,
+        self::PASSWORD,
+        self::CREATED_AT,
+        self::UPDATED_AT
+    ];
+
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 
     static function login(string $email, string $password): Result
     {
