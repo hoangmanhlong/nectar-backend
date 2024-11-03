@@ -2,99 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Error;
-use App\Models\Success;
-use Illuminate\Http\JsonResponse;
+use App\Models\Exceptions\AccountAlreadyExistsException;
+use App\Models\AppResponse;
+use App\Models\Area;
+use App\Models\Exceptions\RequestDataInvalidException;
+use App\Models\Exceptions\UnknownErrorException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Models\UserAccount;
+use App\Models\Zone;
+use App\Models\AppUtils;
+use App\Models\UserData;
 
 class UserAccountController extends Controller
 {
 
-    private $loginDataRule = [
-        UserAccount::EMAIL => ['required', 'email', 'string'],
-        UserAccount::PASSWORD => ['required', 'string']
-    ];
-
-    private $changePasswordRule = [
+    private array $registerDataRule = [
         UserAccount::EMAIL => ['required', 'email', 'string'],
         UserAccount::PASSWORD => ['required', 'string'],
-        UserAccount::NEW_PASSWORD => ['required', 'string'],
+        UserData::USERNAME => ['required', 'string'],
+        Zone::ZONE_ID => ['nullable', 'integer', 'regex:/^\d+$/', 'min:1'],
+        Area::AREA_ID => ['nullable', 'integer','regex:/^\d+$/', 'min:1']
     ];
 
-    function login(Request $request): JsonResponse
+    function register(Request $request)
     {
+        try {
+            $params = $request->all();
 
-        $params = $request->all();
+            $validationResponse = AppUtils::validateParamsWithRule($params, $this->registerDataRule);
+            if ($validationResponse) return $validationResponse;
 
-        $validator = Validator::make($params, $this->loginDataRule);
+            $email = $params[UserAccount::EMAIL];
+            $password = $params[UserAccount::PASSWORD];
+            $username = $params[UserData::USERNAME];
+            $zoneId = $params[Zone::ZONE_ID];
+            $areaId = $params[Area::AREA_ID];
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 422,
-                'message' => $validator->errors()
-            ]);
+            // If there is a zoneId and areaId, but it is not in the list of zones and areas then return 422
+            if ($zoneId && $areaId && (!Zone::isZoneExist($zoneId) || !Area::isAreaExist($areaId))) {
+                return AppResponse::invalidRuleParams();
+            }
+
+            // Create new user account
+            $createUserAccountResult = UserAccount::register($email, $password);
+
+            if ($createUserAccountResult) {
+                // Create new user data
+                $createUserDataResult = UserData::createUserData($email, $username, $zoneId, $areaId);
+                if ($createUserDataResult) {
+                    return AppResponse::success(
+                        status: AppResponse::SUCCESS_STATUS,
+                        message: __(key: 'messages.register_success')
+                    );
+                }
+            }
+        } catch (AccountAlreadyExistsException $accountAlreadyExistsException) {
+            return AppResponse::success(
+                status: AppResponse::ERROR_STATUS,
+                message: $accountAlreadyExistsException->getMessage()
+            );
+        } catch (RequestDataInvalidException) {
+            return AppResponse::invalidRuleParams();
+        } catch (UnknownErrorException $unknownErrorException) {
+            return AppResponse::unknownError($unknownErrorException->getMessage());
         }
-
-        $loginResult = UserAccount::login(
-            $params[UserAccount::EMAIL],
-            $params[UserAccount::PASSWORD]
-        );
-
-        if ($loginResult instanceof Success) {
-            return response()->json([
-                'status' => 200,
-                'message' => 'Login success',
-            ]);
-        }
-
-        return response()->json([
-            'status' => 500,
-            'message' => ($loginResult instanceof Error) ? $loginResult->exception->getMessage() : ''
-        ]);
-    }
-
-    function register(Request $request): JsonResponse
-    {
-        $params = $request->all();
-
-        $validator = Validator::make($params, $this->loginDataRule);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => 422, 'message' => 'Request data invalid'], 422);
-        }
-
-        $registerResult = UserAccount::register(
-            $params[UserAccount::EMAIL],
-            $params[UserAccount::PASSWORD]
-        );
-
-        return response()->json([
-            'status' => $registerResult ? 200 : 500,
-            'message' => $registerResult ? 'Success' : 'Invalid'
-        ]);
-    }
-
-    function changePassword(Request $request): JsonResponse
-    {
-        $params = $request->all();
-
-        $validator = Validator::make($params, $this->changePasswordRule);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => 422, 'message' => 'Request data invalid']);
-        }
-
-        $changePassword = UserAccount::changePassword(
-            $params[UserAccount::EMAIL],
-            $params[UserAccount::PASSWORD],
-            $params[UserAccount::NEW_PASSWORD]
-        );
-
-        return response()->json([
-            'status' => $changePassword ? 200 : 500,
-            'message' => $changePassword ? 'Success' : 'Invalid'
-        ]);
     }
 }

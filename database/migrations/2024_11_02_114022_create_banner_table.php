@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Banner;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,10 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_account', function (Blueprint $table) {
+        Schema::create(Banner::TABLE_NAME, function (Blueprint $table) {
             $table->id();
-            $table->string('email')->unique();
-            $table->string('password');
+            $table->string(Banner::TITLE);
+            $table->string(Banner::IMAGE_URL)->unique();
+            $table->integer(Banner::DISPLAY_PRIORITY)->default(Banner::DISPLAY_PRIORITIES['low']);
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_account');
+        Schema::dropIfExists(Banner::TABLE_NAME);
     }
 };

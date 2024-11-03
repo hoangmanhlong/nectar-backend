@@ -3,13 +3,16 @@
 namespace App\Models;
 
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use App\Models\EmailOrPasswordIncorrectException;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\Exceptions\AccountAlreadyExistsException;
+use App\Models\Exceptions\UnknownErrorException;
 
-class UserAccount extends Authenticatable implements JWTSubject {
+class UserAccount extends Authenticatable implements JWTSubject
+{
 
     use Notifiable;
 
@@ -54,53 +57,64 @@ class UserAccount extends Authenticatable implements JWTSubject {
         return [];
     }
 
-    static function login(string $email, string $password): Result
+    /**
+     * @throws AccountAlreadyExistsException
+     * @throws UnknownErrorException
+     */
+    static function register(string $email, string $password): true
+    {
+        DB::beginTransaction();
+        try {
+            $user = self::where(self::EMAIL, $email)->first();
+
+            if (!$user) {
+                self::create([
+                    self::EMAIL => $email,
+                    self::PASSWORD => Hash::make($password),
+                ]);
+                DB::commit();
+                return true;
+            } else {
+                throw new AccountAlreadyExistsException;
+            }
+        } catch (AccountAlreadyExistsException) {
+            DB::rollBack();
+            throw new AccountAlreadyExistsException;
+        } catch (Exception) {
+            DB::rollBack();
+            throw new UnknownErrorException;
+        }
+    }
+
+    static function changePassword(string $email, string $password, string $newPassword): bool
     {
         try {
             $user = self::where(self::EMAIL, $email)->first();
 
             if ($user && Hash::check($password, $user->password)) {
-                return Result::success(null);
-            }
-
-            return Result::error(new EmailOrPasswordIncorrectException());
-
-        } catch (Exception $e) {
-            return Result::error($e);
-        }
-    }
-
-    static function register(string $email, string $password): bool {
-        try {
-            $user = self::where(self::EMAIL, $email)->first();
-
-            if(!$user) {
-                self::create([
-                    self::EMAIL => $email,
-                    self::PASSWORD => Hash::make($password)
-                ]);
-                return true;
-            }
-        } catch(Exception $e) {
-
-        }
-        return false;
-    }
-
-    static function changePassword(string $email, string $password, string $newPassword): bool {
-        try {
-            $user = self::where(self::EMAIL, $email)->first();
-
-            if($user && Hash::check($password, $user->password)) {
                 $user->update([
                     self::PASSWORD => Hash::make($newPassword)
                 ]);
                 return true;
             }
-        } catch(Exception $e) {
-
+        } catch (Exception $e) {
         }
         return false;
     }
 
+    function userData()
+    {
+        return $this->belongsTo(UserData::class, UserData::ID, self::ID);
+    }
+
+    public function getUserData()
+    {
+        try {
+            $userData = $this->userData;
+            return $userData ? $userData : null;
+        } catch (Exception $e) {
+            echo $e;
+            return null;
+        }
+    }
 }

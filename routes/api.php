@@ -1,30 +1,58 @@
 <?php
 
+use App\Http\Controllers\BannerController;
+use App\Http\Middleware\ApiAuthMiddleware;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserAccountController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProductCategoriesController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\UserDataController;
+
+// Public ---------------------------------------------------------------------------
 
 Route::any('/', function () {
-    return 'This is Nectar';
+    return __(key: 'messages.app_name');
 });
 
 Route::fallback(function () {
-    return 'Nectar =((';
+    return __(key: 'messages.fallback_route');
 });
 
 Route::post('/register', [UserAccountController::class, 'register']);
 
-Route::post('/change-password', [UserAccountController::class, 'changePassword']);
+Route::get('/zones', ZoneController::class);
 
-Route::get('/zones', [ZoneController::class, 'getZones']);
+Route::post('/products', ProductController::class);
+
+Route::get('/banners', BannerController::class);
+
+Route::get('/product-categories', ProductCategoriesController::class);
+
+Route::get('/product-detail/{products_id}', [ProductController::class, 'getProductById']);
+
+// End public api -----------------------------------------------------------------------
+
+// Authentication -----------------------------------------------------------------------
 
 Route::group([
     'middleware' => 'api',
     'prefix' => 'auth'
-], function($route) {
+], function () {
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('logout', 'AuthController@logout');
-    Route::post('refresh', 'AuthController@refresh');
-    Route::post('me', 'AuthController@me');
+    Route::post('/logout', 'AuthController@logout');
+    Route::post('/refresh', 'AuthController@refresh');
+    Route::post('/me', [AuthController::class, 'me']);
 });
+
+// End authentication --------------------------------------------------------------------
+
+
+// Authorization -------------------------------------------------------------------------
+
+Route::middleware([ApiAuthMiddleware::class])->group(function () {
+    Route::get('/user-location', [UserDataController::class, 'getLocation']);
+});
+
+// ---------------------------------------------------------------------------------------

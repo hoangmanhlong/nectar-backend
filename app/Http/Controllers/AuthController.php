@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\AppResponse;
+use App\Models\UserAccount;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
@@ -19,24 +21,25 @@ class AuthController extends Controller
     /**
      * Get a JWT via given credentials.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function login()
+    public function login(): JsonResponse
     {
-        $credentials = request(['email', 'password']);
-
-        if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        if (! $token = $this->getToken()) {
+            return AppResponse::unauthorized();
         }
 
-        return $this->respondWithToken($token);
-        // return response()->json(auth()->user());
+        return AppResponse::success(
+            status: AppResponse::SUCCESS_STATUS,
+            message: __(key: 'messages.login_success'),
+            data: ['token' => $token]
+        );
     }
 
     /**
      * Get the authenticated User.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function me()
     {
@@ -46,19 +49,19 @@ class AuthController extends Controller
     /**
      * Log the user out (Invalidate the token).
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function logout()
     {
         auth()->logout();
 
-        return response()->json(['message' => 'Successfully logged out']);
+        return response()->json(AppResponse::response(200, 'Successfully logged out'));
     }
 
     /**
      * Refresh a token.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function refresh()
     {
@@ -70,7 +73,7 @@ class AuthController extends Controller
      *
      * @param  string $token
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     protected function respondWithToken($token)
     {
@@ -79,5 +82,16 @@ class AuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => auth()->factory()->getTTL() * 60
         ]);
+    }
+
+    /**
+     * Get token of current user
+     *
+     * @return string
+     */
+
+    protected function getToken(): string {
+        $credentials = request([UserAccount::EMAIL, UserAccount::PASSWORD]);
+        return auth()->attempt($credentials);
     }
 }

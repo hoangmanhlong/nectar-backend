@@ -3,18 +3,27 @@
 namespace App\Models;
 
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+use function Pest\Laravel\call;
 
 class Zone extends Model {
+
+    const TABLE_NAME = 'zones';
 
     const ID = 'id';
 
     const NAME ='name';
- 
-    protected $table = 'zones';
+
+    const ZONE_ID = 'zone_id';
+
+    protected $table = self::TABLE_NAME;
 
     protected $fillable = [
-        'name'
+        self::ID,
+        self::NAME,
     ];
 
     protected $hidden = [
@@ -22,16 +31,33 @@ class Zone extends Model {
         'updated_at'
     ];
 
-    function areas() {
+    function areas(): HasMany
+    {
         return $this->hasMany(Area::class, Area::ZONE_ID, self::ID);
     }
 
-    static function getZones() {
+    static function getZones(): ?Collection
+    {
         try {
             return self::with('areas')->get();
         } catch(Exception) {
             return null;
         }
-        
+    }
+
+    static function isZoneExist(int $id): bool {
+        try {
+            return self::where(self::ID, $id)->exists();
+        } catch (Exception) {
+            return false;
+        }
+    }
+
+    static function getZoneById(int $zoneId) {
+        try {
+            return self::where(self::ID, $zoneId)->first();
+        } catch(Exception) {
+            return null;
+        }
     }
 }

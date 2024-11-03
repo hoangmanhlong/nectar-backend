@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Exception;
 
-class Area extends Model {
+class Area extends Model
+{
 
     const TABLE_NAME = 'areas';
 
@@ -13,7 +15,9 @@ class Area extends Model {
     const NAME = 'name';
 
     const ZONE_ID = 'zone_id';
- 
+
+    const AREA_ID = 'area_id';
+
     protected $table = self::TABLE_NAME;
 
     protected $fillable = [
@@ -28,7 +32,25 @@ class Area extends Model {
         self::ZONE_ID
     ];
 
-    function zone() {
+    function zone()
+    {
         return $this->belongsTo(Zone::class, Zone::ID, self::ZONE_ID);
+    }
+
+    static function isAreaExist(int $id): bool
+    {
+        try {
+            return self::where(self::ID, $id)->exists();
+        } catch (Exception) {
+            return false;
+        }
+    }
+
+    static function getAreaById(int $areaId) {
+        try {
+            return self::where(self::ID, $areaId)->first();
+        } catch(Exception) {
+            return null;
+        }
     }
 }

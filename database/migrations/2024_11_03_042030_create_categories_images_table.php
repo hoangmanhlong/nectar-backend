@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ProductCategoryImage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,10 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_account', function (Blueprint $table) {
+        Schema::create(ProductCategoryImage::TABLE_NAME, function (Blueprint $table) {
             $table->id();
-            $table->string('email')->unique();
-            $table->string('password');
+            $table->string(ProductCategoryImage::TITLE);
+            $table->string(ProductCategoryImage::IMAGE_URL);
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_account');
+        Schema::dropIfExists(ProductCategoryImage::TABLE_NAME);
     }
 };
