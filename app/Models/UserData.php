@@ -40,8 +40,7 @@ class UserData extends Model
         string $username,
         int    $zoneId = null,
         int    $areaId = null
-    ): true
-    {
+    ): true {
         DB::beginTransaction();
         try {
             if ((!$zoneId && !$areaId) || ($zoneId && $areaId)) {
@@ -65,7 +64,18 @@ class UserData extends Model
         }
     }
 
-    public function useraccount() {
-        $this->hasOne(UserAccount::class, UserAccount::ID, self::ID);
+    public function useraccount()
+    {
+        return $this->hasOne(UserAccount::class, UserAccount::ID, self::ID);
+    }
+
+    public function favoriteProducts()
+    {
+        return $this->belongsToMany(
+            related: Product::class,
+            table: FavoriteProduct::TABLE_NAME,
+            foreignPivotKey: self::ID,
+            relatedPivotKey: FavoriteProduct::PRODUCT_ID
+        );
     }
 }

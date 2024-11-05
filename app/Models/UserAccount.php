@@ -16,6 +16,8 @@ class UserAccount extends Authenticatable implements JWTSubject
 
     use Notifiable;
 
+    const TABLE_NAME = 'user_account';
+
     const ID = 'id';
     const EMAIL = 'email';
     const PASSWORD = 'password';
@@ -23,7 +25,7 @@ class UserAccount extends Authenticatable implements JWTSubject
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
-    protected $table = 'user_account';
+    protected $table = self::TABLE_NAME;
 
     protected $fillable = [
         self::EMAIL,

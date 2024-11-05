@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Area;
+use App\Models\Zone;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,10 +13,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('areas', function (Blueprint $table) {
+        Schema::create(Area::TABLE_NAME, function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->foreignId('zone_id')->constrained('zones');
+            $table->string(Area::NAME);
+            $table->foreignId(Area::ZONE_ID)->constrained(Zone::TABLE_NAME);
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('areas');
+        Schema::dropIfExists(Area::TABLE_NAME);
     }
 };

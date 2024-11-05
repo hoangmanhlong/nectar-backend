@@ -18,7 +18,7 @@ class Product extends Model
     const UNIT_OF_MEASURE = 'unit_of_measure'; // String
 
     const PRICE = 'price'; // Double
-    
+
     const NUTRIENTS = 'nutrients'; // String
 
     const RATING = 'rating'; // Integer
@@ -36,36 +36,53 @@ class Product extends Model
 
     protected $table = self::TABLE_NAME;
 
-    public static function getProducts() {
+    public static function getProducts()
+    {
         try {
             return self::all()->map(function ($product) {
-                $product->image = $product->image;
-                $product->image->image_url = AppUtils::getImageUrlAttribute($product->image->image_url);
+                $product->thumbnail = $product->thumbnail;
+                $product->thumbnail->image_url = AppUtils::getImageUrlAttribute($product->thumbnail->image_url);
                 $product->images = [];
                 return $product;
             });
-        } catch(Exception) {
+        } catch (Exception) {
             return [];
         }
     }
 
-    public function image() {
+    public function thumbnail()
+    {
         return $this->hasOne(ProductImage::class, ProductImage::PRODUCT_ID, self::ID);
     }
 
-    public static function getProductById(int $id) {
+    public static function getProductById(int $id, bool $isAuth)
+    {
         try {
             //findOrFail(): Phương thức này sẽ ném ra một ngoại lệ ModelNotFoundException nếu
             // không tìm thấy bản ghi, hữu ích trong trường hợp bạn muốn xử lý lỗi khi id không tồn tại.
             $product = self::findOrFail($id);
-            $product->image = $product->image;
-            $product->image->image_url = AppUtils::getImageUrlAttribute($product->image->image_url);
-            $product->images = [];
+            $product->thumbnail = $product->thumbnail;
+            $product->thumbnail->image_url = AppUtils::getImageUrlAttribute($product->thumbnail->image_url);
+            $product->images = [
+                $product->thumbnail,
+                $product->thumbnail,
+                $product->thumbnail
+            ];
+            if (!$isAuth) $product->is_favorite = null;
             return $product;
-        } catch(Exception) {
+        } catch (Exception) {
             return null;
         }
-        
+    }
+
+    public function favoritedByUsers()
+    {
+        return $this->belongsToMany(
+            related: UserData::class,
+            table: FavoriteProduct::TABLE_NAME,
+            foreignPivotKey: self::ID,
+            relatedPivotKey: FavoriteProduct::USER_ID
+        );
     }
 
     protected $hidden = [

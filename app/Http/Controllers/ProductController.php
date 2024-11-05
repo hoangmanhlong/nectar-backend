@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AppResponse;
+use App\Models\FavoriteProduct;
 use App\Models\Product;
 use App\Models\ProductGroup;
+use Exception;
 
 class ProductController extends Controller
 {
@@ -54,12 +56,28 @@ class ProductController extends Controller
         );
     }
 
-
     public function getProductById(int $productId)
     {
-        return AppResponse::success(
-            status: AppResponse::SUCCESS_STATUS,
-            data: Product::getProductById($productId)
-        );
+        try {
+            $user = auth()->user();
+            if($user) {
+                $product = Product::getProductById(id: $productId, isAuth: true);
+                $isFavorite = $user->userData->favoriteProducts()->where(FavoriteProduct::PRODUCT_ID, $productId)->exists();
+                $product->is_favorite = $isFavorite;
+                return AppResponse::success(
+                    status: AppResponse::SUCCESS_STATUS,
+                    data: $product
+                );
+            } else {
+                return AppResponse::success(
+                    status: AppResponse::SUCCESS_STATUS,
+                    data: Product::getProductById(id: $productId, isAuth: false)
+                );
+            }
+        } catch(Exception) {
+            return AppResponse::success(
+                status: AppResponse::ERROR_STATUS
+            );
+        }
     }
 }
