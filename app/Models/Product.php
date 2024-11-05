@@ -31,13 +31,46 @@ class Product extends Model
 
     const THUMBNAIL_ID = 'thumbnail_id'; // Integer
 
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
+
     protected $table = self::TABLE_NAME;
 
     public static function getProducts() {
         try {
-            return self::all();
+            return self::all()->map(function ($product) {
+                $product->image = $product->image;
+                $product->image->image_url = AppUtils::getImageUrlAttribute($product->image->image_url);
+                $product->images = [];
+                return $product;
+            });
         } catch(Exception) {
             return [];
         }
     }
+
+    public function image() {
+        return $this->hasOne(ProductImage::class, ProductImage::PRODUCT_ID, self::ID);
+    }
+
+    public static function getProductById(int $id) {
+        try {
+            //findOrFail(): Phương thức này sẽ ném ra một ngoại lệ ModelNotFoundException nếu
+            // không tìm thấy bản ghi, hữu ích trong trường hợp bạn muốn xử lý lỗi khi id không tồn tại.
+            $product = self::findOrFail($id);
+            $product->image = $product->image;
+            $product->image->image_url = AppUtils::getImageUrlAttribute($product->image->image_url);
+            $product->images = [];
+            return $product;
+        } catch(Exception) {
+            return null;
+        }
+        
+    }
+
+    protected $hidden = [
+        self::CREATED_AT,
+        self::UPDATED_AT,
+        self::THUMBNAIL_ID
+    ];
 }

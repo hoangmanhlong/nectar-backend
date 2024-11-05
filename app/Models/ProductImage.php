@@ -26,12 +26,17 @@ class ProductImage extends Model
 
     protected $hidden = [
         self::CREATED_AT,
-        self::UPDATED_AT
+        self::UPDATED_AT,
+        self::PRODUCT_ID
     ];
 
     protected $casts= [
         self::IS_THUMBNAIL => 'bool'
     ];
+
+    public function product() {
+        return $this->belongsTo(Product::class, Product::ID, self::PRODUCT_ID);
+    }
 
     
 }

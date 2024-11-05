@@ -24,7 +24,7 @@ Route::post('/register', [UserAccountController::class, 'register']);
 
 Route::get('/zones', ZoneController::class);
 
-Route::post('/products', ProductController::class);
+Route::get('/products', ProductController::class);
 
 Route::get('/banners', BannerController::class);
 

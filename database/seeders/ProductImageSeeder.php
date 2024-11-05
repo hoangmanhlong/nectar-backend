@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class ProductImageSeeder extends Seeder
 {
@@ -12,6 +14,23 @@ class ProductImageSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $categoriesFolders = Storage::disk('public')->allDirectories('products');
+
+        $i = 1;
+        foreach ($categoriesFolders as $categoriesFolderItem) {
+            $images = Storage::disk('public')->files($categoriesFolderItem);
+            foreach ($images as $image) {
+                // Get file name (without path)
+                $fileName = basename($image);
+
+                // Create a new banner instance
+                $productImage = new ProductImage;
+                $productImage->name = ucfirst(pathinfo($fileName, PATHINFO_FILENAME));
+                $productImage->image_url = Storage::url($image);
+                $productImage->product_id = $i;
+                $productImage->save();
+                $i++;
+            }
+        }
     }
 }

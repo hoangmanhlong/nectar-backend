@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ProductImage;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -16,7 +17,8 @@ class DatabaseSeeder extends Seeder
             BannerSeeder::class,
             ProductCategoryImageSeeder::class,
             ProductCategoriesSeeder::class, // Run after ProductCategoryImageSeeder
-            ProductsSeeder::class
+            ProductsSeeder::class,
+            ProductImage::class, // Sau khi chạy xong seeder này hãy vào bảng product để cập nhật thumanial thủ công
         ]);
     }
 }
