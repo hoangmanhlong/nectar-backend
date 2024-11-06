@@ -34,16 +34,22 @@ class Product extends Model
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
+    const KEYWORD = 'keyword';
+
     protected $table = self::TABLE_NAME;
+
+    protected $hidden = [
+        self::CREATED_AT,
+        self::UPDATED_AT,
+        self::THUMBNAIL_ID,
+        'pivot'
+    ];
 
     public static function getProducts()
     {
         try {
             return self::all()->map(function ($product) {
-                $product->thumbnail = $product->thumbnail;
-                $product->thumbnail->image_url = AppUtils::getImageUrlAttribute($product->thumbnail->image_url);
-                $product->images = [];
-                return $product;
+                return self::convertProductImage($product);
             });
         } catch (Exception) {
             return [];
@@ -61,13 +67,7 @@ class Product extends Model
             //findOrFail(): Phương thức này sẽ ném ra một ngoại lệ ModelNotFoundException nếu
             // không tìm thấy bản ghi, hữu ích trong trường hợp bạn muốn xử lý lỗi khi id không tồn tại.
             $product = self::findOrFail($id);
-            $product->thumbnail = $product->thumbnail;
-            $product->thumbnail->image_url = AppUtils::getImageUrlAttribute($product->thumbnail->image_url);
-            $product->images = [
-                $product->thumbnail,
-                $product->thumbnail,
-                $product->thumbnail
-            ];
+            $product = self::convertProductImage($product);
             if (!$isAuth) $product->is_favorite = null;
             return $product;
         } catch (Exception) {
@@ -85,9 +85,30 @@ class Product extends Model
         );
     }
 
-    protected $hidden = [
-        self::CREATED_AT,
-        self::UPDATED_AT,
-        self::THUMBNAIL_ID
-    ];
+    public static function convertProductImage(Product $product)
+    {
+        $product->thumbnail = $product->thumbnail;
+        $product->thumbnail->image_url = AppUtils::getImageUrlAttribute($product->thumbnail->image_url);
+        $product->images = [
+            $product->thumbnail,
+            $product->thumbnail,
+            $product->thumbnail
+        ];
+        return $product;
+    }
+
+    public static function searchProduct(mixed $keyword) {
+        try {
+            return self::query()->where(
+                column: self::NAME,
+                operator: 'LIKE',
+                value: '%' . $keyword . '%'
+            )->get()->map(function ($product) {
+                return self::convertProductImage($product);
+            });
+        } catch(Exception $e) {
+            echo $e;
+            return [];
+        }
+    }
 }

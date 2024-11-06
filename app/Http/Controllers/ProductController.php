@@ -8,6 +8,7 @@ use App\Models\FavoriteProduct;
 use App\Models\Product;
 use App\Models\ProductGroup;
 use Exception;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -60,7 +61,7 @@ class ProductController extends Controller
     {
         try {
             $user = auth()->user();
-            if($user) {
+            if ($user) {
                 $product = Product::getProductById(id: $productId, isAuth: true);
                 $isFavorite = $user->userData->favoriteProducts()->where(FavoriteProduct::PRODUCT_ID, $productId)->exists();
                 $product->is_favorite = $isFavorite;
@@ -74,10 +75,51 @@ class ProductController extends Controller
                     data: Product::getProductById(id: $productId, isAuth: false)
                 );
             }
-        } catch(Exception) {
+        } catch (Exception) {
             return AppResponse::success(
                 status: AppResponse::ERROR_STATUS
             );
         }
+    }
+
+    public function getFavoriteProducts()
+    {
+        try {
+            $favoriteProducts = auth()->user()
+                ->userData
+                ->favoriteProducts
+                ->map(function ($product) {
+                    return Product::convertProductImage($product);
+                });
+            return AppResponse::success(
+                status: AppResponse::SUCCESS_STATUS,
+                data: $favoriteProducts
+            );
+        } catch (Exception) {
+            return AppResponse::success(
+                status: AppResponse::ERROR_STATUS,
+                message: __('messages.get_favorite_products_error')
+            );
+        }
+    }
+
+    public function search(Request $request) {
+        $hasKeyword = $request->filled(Product::KEYWORD);
+
+        if(!$hasKeyword) {
+            return AppResponse::success(
+                status: AppResponse::SUCCESS_STATUS,
+                message: __('messages.search_product_error')
+            );
+        }
+
+        $keyword = $request->input(Product::KEYWORD);
+
+        $searchedProducts = Product::searchProduct(keyword: $keyword);
+
+        return AppResponse::success(
+            status: AppResponse::SUCCESS_STATUS,
+            data: $searchedProducts
+        );
     }
 }

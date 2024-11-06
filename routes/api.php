@@ -32,6 +32,8 @@ Route::get('/product-categories', ProductCategoriesController::class);
 
 Route::get('/product-detail/{products_id}', [ProductController::class, 'getProductById']);
 
+Route::get('/products/search', [ProductController::class, 'search']);
+
 // End public api -----------------------------------------------------------------------
 
 // Authentication -----------------------------------------------------------------------
@@ -41,8 +43,8 @@ Route::group([
     'prefix' => 'auth'
 ], function () {
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', 'AuthController@logout');
-    Route::post('/refresh', 'AuthController@refresh');
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::post('/me', [AuthController::class, 'me']);
 });
 
@@ -53,6 +55,7 @@ Route::group([
 
 Route::middleware([ApiAuthMiddleware::class])->group(function () {
     Route::get('/user-location', [UserDataController::class, 'getLocation']);
+    Route::get('/favorite-products', [ProductController::class, 'getFavoriteProducts']);
 });
 
 // ---------------------------------------------------------------------------------------

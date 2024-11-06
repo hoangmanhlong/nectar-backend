@@ -55,7 +55,10 @@ class AuthController extends Controller
     {
         auth()->logout();
 
-        return response()->json(AppResponse::response(200, 'Successfully logged out'));
+        return AppResponse::success(
+            AppResponse::SUCCESS_STATUS,
+            __('messages.Successfully_logged_out')
+        );
     }
 
     /**
@@ -65,7 +68,10 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(auth()->refresh());
+        return AppResponse::success(
+            status: AppResponse::SUCCESS_STATUS,
+            data: ['token' => auth()->refresh()]
+        );
     }
 
     /**
