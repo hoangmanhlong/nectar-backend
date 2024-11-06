@@ -243,7 +243,7 @@ class ProductsSeeder extends Seeder
             $product->rating = $productItem[Product::RATING];
             $product->stock = $productItem[Product::STOCK];
             $product->category_id = $productItem[Product::CATEGORY_ID];
-            $product->thumbnail_id = $productItem[Product::THUMBNAIL_ID];
+            // $product->thumbnail_id = $productItem[Product::THUMBNAIL_ID];
             $product->sold = $productItem[Product::SOLD];
 
             $product->save();

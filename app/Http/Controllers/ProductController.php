@@ -103,17 +103,18 @@ class ProductController extends Controller
         }
     }
 
-    public function search(Request $request) {
-        $hasKeyword = $request->filled(Product::KEYWORD);
+    public function search(Request $request)
+    {
 
-        if(!$hasKeyword) {
+        $keyword = $request->input(Product::KEYWORD);
+
+        // Check if keyword exists
+        if (!$keyword) {
             return AppResponse::success(
-                status: AppResponse::SUCCESS_STATUS,
+                status: AppResponse::ERROR_STATUS,
                 message: __('messages.search_product_error')
             );
         }
-
-        $keyword = $request->input(Product::KEYWORD);
 
         $searchedProducts = Product::searchProduct(keyword: $keyword);
 

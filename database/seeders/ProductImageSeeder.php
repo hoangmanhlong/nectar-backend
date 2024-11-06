@@ -28,7 +28,15 @@ class ProductImageSeeder extends Seeder
                 $productImage->name = ucfirst(pathinfo($fileName, PATHINFO_FILENAME));
                 $productImage->image_url = Storage::url($image);
                 $productImage->product_id = $i;
-                $productImage->save();
+                $productImage->save(); // Save the image first to get its ID
+
+                // Find the corresponding product by its ID
+                $product = Product::find($i);
+                if ($product) {
+                    $product->thumbnail_id = $productImage->id;
+                    $product->save();
+                }
+
                 $i++;
             }
         }

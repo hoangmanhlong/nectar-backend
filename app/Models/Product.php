@@ -106,8 +106,7 @@ class Product extends Model
             )->get()->map(function ($product) {
                 return self::convertProductImage($product);
             });
-        } catch(Exception $e) {
-            echo $e;
+        } catch(Exception) {
             return [];
         }
     }

@@ -25,7 +25,7 @@ return new class extends Migration
             $table->integer(Product::RATING);
             $table->integer(Product::STOCK);
             $table->foreignId(Product::CATEGORY_ID)->constrained(ProductCategory::TABLE_NAME, ProductCategory::ID);
-            $table->foreignId(Product::THUMBNAIL_ID)->constrained(ProductImage::TABLE_NAME, ProductImage::ID);
+            $table->unsignedBigInteger(Product::THUMBNAIL_ID)->nullable();
             $table->integer(Product::SOLD);
             $table->timestamps();
         });
