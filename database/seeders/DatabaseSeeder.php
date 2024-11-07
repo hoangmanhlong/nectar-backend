@@ -15,9 +15,9 @@ class DatabaseSeeder extends Seeder
             ZoneSeeder::class,
             BannerSeeder::class,
             ProductCategoryImageSeeder::class,
-            ProductCategoriesSeeder::class, // Run after ProductCategoryImageSeeder
+            ProductCategoriesSeeder::class,
             ProductsSeeder::class,
-            ProductImageSeeder::class, // Sau khi chạy xong seeder này hãy vào bảng product để cập nhật thumanial thủ công
+            ProductImageSeeder::class,
         ]);
     }
 }

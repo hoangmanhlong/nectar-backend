@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserAccountController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BasketController;
 use App\Http\Controllers\ProductCategoriesController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserDataController;
@@ -56,6 +57,12 @@ Route::group([
 Route::middleware([ApiAuthMiddleware::class])->group(function () {
     Route::get('/user-location', [UserDataController::class, 'getLocation']);
     Route::get('/favorite-products', [ProductController::class, 'getFavoriteProducts']);
+
+    Route::group([
+        'prefix' => 'basket'
+    ], function () {
+        Route::get('/', BasketController::class);
+    });
 });
 
 // ---------------------------------------------------------------------------------------

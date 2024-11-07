@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-use function Pest\Laravel\call;
-
 class Zone extends Model {
 
     const TABLE_NAME = 'zones';

@@ -78,4 +78,12 @@ class UserData extends Model
             relatedPivotKey: FavoriteProduct::PRODUCT_ID
         );
     }
+
+    public function basket() {
+        return $this->hasOne(
+            related: Basket::class,
+            foreignKey: Basket::USER_ID,
+            localKey: self::ID
+        );
+    }
 }
