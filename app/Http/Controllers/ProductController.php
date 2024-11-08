@@ -123,4 +123,36 @@ class ProductController extends Controller
             data: $searchedProducts
         );
     }
+
+    public function favoriteProduct(int $productId) {
+        try {
+
+            $user = auth()->user();
+            $userData = $user->userData;
+            $userId = $userData->id;
+
+            $product = $userData->favoriteProducts()->where(FavoriteProduct::PRODUCT_ID, $productId)->first();
+
+            $isFavorite = null;
+
+            if($product){
+                FavoriteProduct::deleteFavoriteProduct(userId: $userId, productId: $productId);
+                $product->delete();
+                $isFavorite = false;
+            } else {
+                FavoriteProduct::createFavoriteProduct(userId: $userId, productId: $productId);
+                $isFavorite = true;
+            }
+
+            return AppResponse::success(
+                status: $isFavorite == null ? AppResponse::ERROR_STATUS : AppResponse::SUCCESS_STATUS,
+                data: $isFavorite == null ? null : ['is_falorite' => $isFavorite]
+            );
+        } catch(Exception $e) {
+            echo $e;
+            return AppResponse::success(
+                status: AppResponse::ERROR_STATUS
+            );
+        }
+    }
 }

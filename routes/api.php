@@ -10,6 +10,7 @@ use App\Http\Controllers\BasketController;
 use App\Http\Controllers\ProductCategoriesController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserDataController;
+use App\Models\Basket;
 
 // Public ---------------------------------------------------------------------------
 
@@ -57,11 +58,11 @@ Route::group([
 Route::middleware([ApiAuthMiddleware::class])->group(function () {
     Route::get('/user-location', [UserDataController::class, 'getLocation']);
     Route::get('/favorite-products', [ProductController::class, 'getFavoriteProducts']);
+    Route::put('/favorite-product/{product_id}', [ProductController::class, 'favoriteProduct']);
 
-    Route::group([
-        'prefix' => 'basket'
-    ], function () {
+    Route::group(['prefix' => 'basket'], function () {
         Route::get('/', BasketController::class);
+        Route::post('update', [BasketController::class, 'updateBasket']);
     });
 });
 
