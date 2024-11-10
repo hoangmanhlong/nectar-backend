@@ -1,6 +1,7 @@
 <?php
 
-use App\Models\Basket;
+use App\Models\Product;
+use App\Models\ProductRating;
 use App\Models\UserData;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -13,9 +14,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(Basket::TABLE_NAME, function (Blueprint $table) {
+        Schema::create(ProductRating::TABLE_NAME, function (Blueprint $table) {
             $table->id();
-            $table->foreignId(Basket::USER_ID)->constrained(UserData::TABLE_NAME)->onDelete('cascade');
+            $table->foreignId(ProductRating::USER_ID)->constrained(UserData::TABLE_NAME);
+            $table->foreignId(ProductRating::PRODUCT_ID)->constrained(Product::TABLE_NAME);
+            $table->float(ProductRating::RATING);
             $table->timestamps();
         });
     }
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(Basket::TABLE_NAME);
+        Schema::dropIfExists(ProductRating::TABLE_NAME);
     }
 };

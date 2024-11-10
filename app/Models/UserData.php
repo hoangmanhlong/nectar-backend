@@ -32,6 +32,11 @@ class UserData extends Model
         self::AREA_ID,
     ];
 
+    protected $hidden = [
+        self::CREATED_AT,
+        self::UPDATED_AT
+    ];
+
     /**
      * @throws UnknownErrorException|RequestDataInvalidException
      */
@@ -74,7 +79,7 @@ class UserData extends Model
         return $this->belongsToMany(
             related: Product::class,
             table: FavoriteProduct::TABLE_NAME,
-            foreignPivotKey: self::ID,
+            foreignPivotKey: FavoriteProduct::USER_ID,
             relatedPivotKey: FavoriteProduct::PRODUCT_ID
         );
     }
@@ -84,6 +89,15 @@ class UserData extends Model
             related: Basket::class,
             foreignKey: Basket::USER_ID,
             localKey: self::ID
+        );
+    }
+
+    function ratings() {
+        return $this->belongsToMany(
+            related: Product::class,
+            table: ProductRating::TABLE_NAME,
+            foreignPivotKey: ProductRating::USER_ID,
+            relatedPivotKey: ProductRating::PRODUCT_ID
         );
     }
 }

@@ -18,7 +18,7 @@ class UserDataController extends Controller
             return AppResponse::unauthorized();
         }
 
-        $userData = $user->getUserData();
+        $userData = $user->userData;
 
         if (!$userData) {
             return AppResponse::success(

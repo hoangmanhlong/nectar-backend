@@ -61,15 +61,13 @@ class Product extends Model
         return $this->hasOne(ProductImage::class, ProductImage::PRODUCT_ID, self::ID);
     }
 
-    public static function getProductById(int $id, bool $isAuth)
+    public static function getProductById(int $id)
     {
         try {
             //findOrFail(): Phương thức này sẽ ném ra một ngoại lệ ModelNotFoundException nếu
             // không tìm thấy bản ghi, hữu ích trong trường hợp bạn muốn xử lý lỗi khi id không tồn tại.
             $product = self::findOrFail($id);
-            $product = self::convertProductImage($product);
-            if (!$isAuth) $product->is_favorite = null;
-            return $product;
+            return self::convertProductImage($product);
         } catch (Exception) {
             return null;
         }
@@ -80,7 +78,7 @@ class Product extends Model
         return $this->belongsToMany(
             related: UserData::class,
             table: FavoriteProduct::TABLE_NAME,
-            foreignPivotKey: self::ID,
+            foreignPivotKey: FavoriteProduct::PRODUCT_ID,
             relatedPivotKey: FavoriteProduct::USER_ID
         );
     }
@@ -109,5 +107,19 @@ class Product extends Model
         } catch(Exception) {
             return [];
         }
+    }
+
+    public function basketItem()
+    {
+        return $this->belongsTo(BasketItem::class, BasketItem::PRODUCT_ID, self::ID);
+    }
+
+    public function ratings() {
+        return $this->belongsToMany(
+            related: UserData::class,
+            table: ProductRating::TABLE_NAME,
+            foreignPivotKey: ProductRating::PRODUCT_ID,
+            relatedPivotKey: ProductRating::USER_ID
+        );
     }
 }

@@ -22,8 +22,6 @@ class UserAccount extends Authenticatable implements JWTSubject
     const EMAIL = 'email';
     const PASSWORD = 'password';
     const NEW_PASSWORD = 'new_password';
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
 
     protected $table = self::TABLE_NAME;
 
@@ -107,16 +105,5 @@ class UserAccount extends Authenticatable implements JWTSubject
     function userData()
     {
         return $this->belongsTo(UserData::class, UserData::ID, self::ID);
-    }
-
-    public function getUserData()
-    {
-        try {
-            $userData = $this->userData;
-            return $userData ? $userData : null;
-        } catch (Exception $e) {
-            echo $e;
-            return null;
-        }
     }
 }

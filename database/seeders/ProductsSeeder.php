@@ -240,7 +240,6 @@ class ProductsSeeder extends Seeder
             $product->unit_of_measure = $productItem[Product::UNIT_OF_MEASURE];
             $product->price = $productItem[Product::PRICE];
             $product->nutrients = $productItem[Product::NUTRIENTS];
-            $product->rating = $productItem[Product::RATING];
             $product->stock = $productItem[Product::STOCK];
             $product->category_id = $productItem[Product::CATEGORY_ID];
             // $product->thumbnail_id = $productItem[Product::THUMBNAIL_ID];

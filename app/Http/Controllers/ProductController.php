@@ -7,6 +7,7 @@ use App\Models\AppResponse;
 use App\Models\FavoriteProduct;
 use App\Models\Product;
 use App\Models\ProductGroup;
+use App\Models\ProductRating;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -61,21 +62,44 @@ class ProductController extends Controller
     {
         try {
             $user = auth()->user();
-            if ($user) {
-                $product = Product::getProductById(id: $productId, isAuth: true);
-                $isFavorite = $user->userData->favoriteProducts()->where(FavoriteProduct::PRODUCT_ID, $productId)->exists();
-                $product->is_favorite = $isFavorite;
+
+            $isAuth  = $user !== null;
+
+            $product = Product::getProductById(id: $productId);
+
+            if (!$product) {
                 return AppResponse::success(
-                    status: AppResponse::SUCCESS_STATUS,
-                    data: $product
-                );
-            } else {
-                return AppResponse::success(
-                    status: AppResponse::SUCCESS_STATUS,
-                    data: Product::getProductById(id: $productId, isAuth: false)
+                    status: AppResponse::ERROR_STATUS
                 );
             }
-        } catch (Exception) {
+
+            $review = $product->ratings()->sum(ProductRating::RATING);
+
+            $isFavorite = null;
+
+            $ratingOfMe = 0;
+
+            if ($isAuth) {
+                $userData = $user->userData;
+                
+                $isFavorite = $userData
+                    ->favoriteProducts()
+                    ->where(FavoriteProduct::PRODUCT_ID, $productId)
+                    ->exists();
+
+                $ratingOfMe = $userData->ratings()->where(ProductRating::PRODUCT_ID, $productId)->first() ?? 0;
+            }
+
+            $product->review = $review;
+            $product->is_favorite = $isFavorite;
+            $product->rating = $ratingOfMe;
+
+            return AppResponse::success(
+                status: AppResponse::SUCCESS_STATUS,
+                data: $product
+            );
+        } catch (Exception $e) {
+            echo $e;
             return AppResponse::success(
                 status: AppResponse::ERROR_STATUS
             );
@@ -124,32 +148,24 @@ class ProductController extends Controller
         );
     }
 
-    public function favoriteProduct(int $productId) {
+    public function favoriteProduct(int $productId)
+    {
         try {
+            $userData = auth()->user()->userData;
 
-            $user = auth()->user();
-            $userData = $user->userData;
-            $userId = $userData->id;
+            // The toggle method of the belongsToMany relationship in Laravel.
+            // This method will check if the product has been added to the user's wishlist.
+            // If it has, it will remove the product from the list. Otherwise, if it has not, it will
+            // add the product to the list.
+            $userData->favoriteProducts()->toggle($productId);
 
-            $product = $userData->favoriteProducts()->where(FavoriteProduct::PRODUCT_ID, $productId)->first();
-
-            $isFavorite = null;
-
-            if($product){
-                FavoriteProduct::deleteFavoriteProduct(userId: $userId, productId: $productId);
-                $product->delete();
-                $isFavorite = false;
-            } else {
-                FavoriteProduct::createFavoriteProduct(userId: $userId, productId: $productId);
-                $isFavorite = true;
-            }
+            $isFavorite = $userData->favoriteProducts->contains($productId);
 
             return AppResponse::success(
-                status: $isFavorite == null ? AppResponse::ERROR_STATUS : AppResponse::SUCCESS_STATUS,
-                data: $isFavorite == null ? null : ['is_falorite' => $isFavorite]
+                status: AppResponse::SUCCESS_STATUS,
+                data: ['is_favorite' => $isFavorite]
             );
-        } catch(Exception $e) {
-            echo $e;
+        } catch (Exception) {
             return AppResponse::success(
                 status: AppResponse::ERROR_STATUS
             );

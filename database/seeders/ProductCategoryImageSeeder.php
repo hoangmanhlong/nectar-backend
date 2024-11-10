@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\ProductCategory;
 use App\Models\ProductCategoryImage;
-use App\Models\ProductImage;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 

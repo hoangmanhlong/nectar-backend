@@ -10,7 +10,6 @@ use App\Http\Controllers\BasketController;
 use App\Http\Controllers\ProductCategoriesController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserDataController;
-use App\Models\Basket;
 
 // Public ---------------------------------------------------------------------------
 
@@ -40,10 +39,7 @@ Route::get('/products/search', [ProductController::class, 'search']);
 
 // Authentication -----------------------------------------------------------------------
 
-Route::group([
-    'middleware' => 'api',
-    'prefix' => 'auth'
-], function () {
+Route::middleware('api')->prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
@@ -60,9 +56,11 @@ Route::middleware([ApiAuthMiddleware::class])->group(function () {
     Route::get('/favorite-products', [ProductController::class, 'getFavoriteProducts']);
     Route::put('/favorite-product/{product_id}', [ProductController::class, 'favoriteProduct']);
 
-    Route::group(['prefix' => 'basket'], function () {
+    Route::prefix('basket')->group(function () {
         Route::get('/', BasketController::class);
-        Route::post('update', [BasketController::class, 'updateBasket']);
+        Route::post('/', [BasketController::class, 'add']);
+        Route::patch('/', [BasketController::class, 'update']);
+        Route::delete('/', [BasketController::class, 'delete']);
     });
 });
 

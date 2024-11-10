@@ -2,8 +2,6 @@
 
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\ProductImage;
-use GuzzleHttp\Handler\Proxy;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -22,7 +20,6 @@ return new class extends Migration
             $table->string(Product::UNIT_OF_MEASURE);
             $table->double(Product::PRICE);
             $table->string(Product::NUTRIENTS);
-            $table->integer(Product::RATING);
             $table->integer(Product::STOCK);
             $table->foreignId(Product::CATEGORY_ID)->constrained(ProductCategory::TABLE_NAME, ProductCategory::ID);
             $table->unsignedBigInteger(Product::THUMBNAIL_ID)->nullable();

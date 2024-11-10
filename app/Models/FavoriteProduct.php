@@ -14,10 +14,6 @@ class FavoriteProduct extends Model
 
     const PRODUCT_ID = 'product_id';
 
-    const CREATED_AT = 'created_at';
-
-    const UPDATED_AT = 'updated_at';
-
     protected $table = self::TABLE_NAME;
 
     protected $hidden = [
@@ -29,18 +25,4 @@ class FavoriteProduct extends Model
         self::USER_ID,
         self::PRODUCT_ID
     ];
-
-    public static function createFavoriteProduct(int $userId, int $productId) {
-        return self::create([
-            self::PRODUCT_ID => $productId,
-            self::USER_ID => $userId
-        ]);
-    }
-
-    public static function deleteFavoriteProduct(int $userId, int $productId) {
-        self::where(self::USER_ID, $userId)
-            ->where(self::PRODUCT_ID, $productId)
-            ->first()
-            ->delete();
-    }
 }

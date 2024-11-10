@@ -27,8 +27,8 @@ class Area extends Model
     ];
 
     protected $hidden = [
-        'created_at',
-        'updated_at',
+        self::CREATED_AT,
+        self::UPDATED_AT,
         self::ZONE_ID
     ];
 

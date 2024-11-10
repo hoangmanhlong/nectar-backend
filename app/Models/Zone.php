@@ -25,8 +25,8 @@ class Zone extends Model {
     ];
 
     protected $hidden = [
-        'created_at',
-        'updated_at'
+        self::CREATED_AT,
+        self::UPDATED_AT
     ];
 
     function areas(): HasMany
