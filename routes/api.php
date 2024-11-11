@@ -55,6 +55,7 @@ Route::middleware([ApiAuthMiddleware::class])->group(function () {
     Route::get('/user-location', [UserDataController::class, 'getLocation']);
     Route::get('/favorite-products', [ProductController::class, 'getFavoriteProducts']);
     Route::put('/favorite-product/{product_id}', [ProductController::class, 'favoriteProduct']);
+    Route::put('/product/rating', [ProductController::class, 'ratingProduct']);
 
     Route::prefix('basket')->group(function () {
         Route::get('/', BasketController::class);

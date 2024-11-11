@@ -17,4 +17,10 @@ class ProductRating extends Model
     const RATING = 'rating';
 
     protected $table = self::TABLE_NAME;
+
+    protected $fillable = [
+        self::USER_ID,
+        self::PRODUCT_ID,
+        self::RATING
+    ];
 }

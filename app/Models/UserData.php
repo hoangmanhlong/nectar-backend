@@ -92,12 +92,20 @@ class UserData extends Model
         );
     }
 
-    function ratings() {
+    function ratedProducts() {
         return $this->belongsToMany(
             related: Product::class,
             table: ProductRating::TABLE_NAME,
             foreignPivotKey: ProductRating::USER_ID,
             relatedPivotKey: ProductRating::PRODUCT_ID
+        );
+    }
+
+    function ratings() {
+        return $this->hasMany(
+            related: ProductRating::class,
+            foreignKey: ProductRating::USER_ID,
+            localKey: self::ID
         );
     }
 }
