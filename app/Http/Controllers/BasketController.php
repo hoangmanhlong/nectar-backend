@@ -15,14 +15,15 @@ class BasketController extends Controller
 {
 
     private $updateBasketItemDataRules = [
-        BasketItem::QUANTITY => ['required', 'integer', 'min:1'],
+        Product::ID => ['required'],
+        BasketItem::QUANTITY => ['required', 'integer', 'min:2'],
         'method' => ['required', 'integer', 'in:0,1'],
     ];
 
     private $addNewProductsInBasketBodyRequestDataRules = [
-        'products' => ['required', 'array'],
-        'products.*.' . BasketItem::ID => ['required', 'integer'],
-        'products.*.' . BasketItem::QUANTITY => ['required', 'integer', 'min:1'],
+        '*' => ['bail', 'required', 'array', 'min:1'], // bail: Dừng kiểm tra các rule còn lại nếu một rule trước đó không đạt.
+        '*.id' => ['required', 'integer'],
+        '*.quantity' => ['required', 'integer', 'min:1'],
     ];
 
     public function __invoke()
@@ -52,7 +53,7 @@ class BasketController extends Controller
             return AppResponse::success(
                 status: AppResponse::SUCCESS_STATUS,
                 data: [
-                    'total_items' => $totalItems,
+                    'total_product' => $totalItems,
                     'total_price' => $totalPrice,
                     'products' => $productsInBasket
                 ]
@@ -71,8 +72,9 @@ class BasketController extends Controller
 
             $params = $request->all();
 
-            // Kiểm tra xem sản phẩm có hay chưa. nếu có thì cộng dồn. nếu chưa thì thêm mới
-            // và lấy số lượng từ request
+            if ($params === null || !is_array($params) || empty($params)) {
+                return AppResponse::invalidRuleParams();
+            }
 
             $validationResponse = AppUtils::validateParamsWithRule(
                 params: $params,
@@ -91,20 +93,31 @@ class BasketController extends Controller
                 $basket = $userData->basket()->create();
             }
 
-            $products = $params['products'];
+            $products = $params;
 
             foreach ($products as $product) {
-                $basket->products()->create([
-                    BasketItem::PRODUCT_ID => $product[Product::ID],
-                    BasketItem::QUANTITY => 1
-                ]);
+                $existingProduct = $basket->products()
+                    ->where(BasketItem::PRODUCT_ID, $product[Product::ID])
+                    ->first();
+
+                if ($existingProduct) {
+                    $existingProduct->increment(BasketItem::QUANTITY, $product[BasketItem::QUANTITY]);
+                } else {
+                    $basket->products()->create([
+                        BasketItem::PRODUCT_ID => $product[Product::ID],
+                        BasketItem::QUANTITY => $product[BasketItem::QUANTITY],
+                    ]);
+                }
             }
 
             DB::commit();
 
-            // trả về số sản phẩm trong giỏ
-
-            return $this->__invoke();
+            return AppResponse::success(
+                status: AppResponse::SUCCESS_STATUS,
+                data: [
+                    'total_product' => $basket->products()->count()
+                ]
+            );
         } catch (Exception) {
             DB::rollBack();
             return AppResponse::success(
@@ -124,7 +137,53 @@ class BasketController extends Controller
             // Convention
             // 'method': 0 is decrease quantity, 1 is increase quantity
             $method = $params['method'];
-        } catch (Exception) {
+            $productId = $params[Product::ID];
+            $quantity = $params[BasketItem::QUANTITY];
+
+            $userData = auth()->user()->userData;
+            $basket = $userData->basket;
+
+            if ($basket === null || empty($basket)) {
+                return AppResponse::success(
+                    status: AppResponse::ERROR_STATUS
+                );
+            }
+
+            // Adjust quantity based on the method
+            $quantity = $method === 0 ? $quantity - 1 : $quantity + 1;
+
+            // Get updated product
+            $updatedProduct = $basket->products()->where(BasketItem::PRODUCT_ID, $productId);
+
+            // Update the product quantity in the basket
+            $updatedProduct->update([BasketItem::QUANTITY => $quantity]);
+
+            $totalItems = 0;
+            $totalPrice = 0.0;
+
+            $basket->products->map(function ($basketItem) use (&$totalPrice, &$totalItems) {
+                $product = $basketItem->product;
+                $product->quantity = $basketItem->quantity;
+                $totalPrice += $product->price * $basketItem->quantity;
+                $totalItems++;
+            });
+
+            return AppResponse::success(
+                status: AppResponse::SUCCESS_STATUS,
+                data: [
+                    'total_product' => $totalItems,
+                    'total_price' => $totalPrice,
+                    'product' => [
+                        Product::ID => $productId,
+                        BasketItem::QUANTITY => $quantity
+                    ]
+                ]
+            );
+        } catch (Exception $e) {
+            echo $e;
+            return AppResponse::success(
+                status: AppResponse::ERROR_STATUS
+            );
         }
     }
 
@@ -135,11 +194,37 @@ class BasketController extends Controller
             $productId = $params[Product::ID];
             $userData = auth()->user()->userData;
             $basket = $userData->basket;
-            $deleted = $basket->products()->where(BasketItem::PRODUCT_ID, $productId)->delete();
+            $deletedProduct = $basket->products()->where(BasketItem::PRODUCT_ID, $productId);
+
+            if (!$deletedProduct) {
+                return AppResponse::success(
+                    status: AppResponse::ERROR_STATUS
+                );
+            }
+
+            $deleted = $deletedProduct->delete();
 
             if ($deleted) {
+
+                $totalItems = 0;
+                $totalPrice = 0.0;
+
+                $basket->products->map(function ($basketItem) use (&$totalPrice, &$totalItems) {
+                    $product = $basketItem->product;
+                    $product->quantity = $basketItem->quantity;
+                    $totalPrice += $product->price * $basketItem->quantity;
+                    $totalItems++;
+                });
+
                 return AppResponse::success(
                     status: AppResponse::SUCCESS_STATUS,
+                    data: [
+                        'total_product' => $totalItems,
+                        'total_price' => $totalPrice,
+                        'product' => [
+                            Product::ID => $productId
+                        ]
+                    ]
                 );
             } else {
                 return AppResponse::success(
