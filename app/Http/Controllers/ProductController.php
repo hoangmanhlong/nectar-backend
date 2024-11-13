@@ -23,7 +23,7 @@ class ProductController extends Controller
     {
         $products = Product::getProducts();
 
-        if ($products->isEmpty()) {
+        if ($products === null || empty($products)) {
             return AppResponse::success(
                 status: AppResponse::SUCCESS_STATUS,
                 data: []
