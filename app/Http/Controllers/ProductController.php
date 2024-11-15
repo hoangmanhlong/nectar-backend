@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\AppResponse;
 use App\Models\AppUtils;
-use App\Models\FavoriteProduct;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\ProductGroup;
 use App\Models\ProductRating;
 use Exception;
@@ -67,11 +67,8 @@ class ProductController extends Controller
     public function getProductById(int $productId)
     {
         try {
-            $user = auth()->user();
 
-            $isAuth  = $user !== null;
-
-            $product = Product::getProductById(id: $productId);
+            $product = Product::getProductById(productId: $productId);
 
             if (!$product) {
                 return AppResponse::success(
@@ -79,34 +76,11 @@ class ProductController extends Controller
                 );
             }
 
-            $review = $product->ratings()->avg(ProductRating::RATING) ?? 0;
-
-            $isFavorite = null;
-
-            $ratingOfMe = 0;
-
-            if ($isAuth) {
-                $userData = $user->userData;
-
-                $isFavorite = $userData->favoriteProducts()
-                    ->where(FavoriteProduct::PRODUCT_ID, $productId)
-                    ->exists();
-
-                $ratingOfMe = $userData->ratedProducts()
-                    ->where(ProductRating::PRODUCT_ID, $productId)
-                    ->value(ProductRating::RATING) ?? 0;
-            }
-
-            $product->review = round($review, 1);
-            $product->is_favorite = $isFavorite;
-            $product->rating = $ratingOfMe;
-
             return AppResponse::success(
                 status: AppResponse::SUCCESS_STATUS,
                 data: $product
             );
-        } catch (Exception $e) {
-            echo $e;
+        } catch (Exception) {
             return AppResponse::success(
                 status: AppResponse::ERROR_STATUS
             );
@@ -118,10 +92,7 @@ class ProductController extends Controller
         try {
             $favoriteProducts = auth()->user()
                 ->userData
-                ->favoriteProducts
-                ->map(function ($product) {
-                    return Product::convertProductImage($product);
-                });
+                ->getFavoriteProducts();
             return AppResponse::success(
                 status: AppResponse::SUCCESS_STATUS,
                 data: $favoriteProducts
@@ -208,11 +179,21 @@ class ProductController extends Controller
                     ProductRating::RATING => $rating
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return AppResponse::success(
                 status: AppResponse::ERROR_STATUS,
                 message: 'An error occurred while processing the rating.'
             );
         }
+    }
+
+    public function getProductsByCategory(int $categoryId) {
+
+        $products = ProductCategory::getProductsByCategory($categoryId);
+
+        return AppResponse::success(
+            status: AppResponse::SUCCESS_STATUS,
+            data: $products
+        );
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductCategory extends Model
 {
     const TABLE_NAME = 'product_categories';
-    
+
     const ID = 'id';
 
     const NAME = 'name'; // String
@@ -23,7 +23,6 @@ class ProductCategory extends Model
         self::ID,
         self::NAME,
         self::COLOR,
-        
     ];
 
     protected $hidden = [
@@ -46,5 +45,26 @@ class ProductCategory extends Model
 
     function image() {
         return $this->hasOne(ProductCategoryImage::class, ProductCategoryImage::ID, self::CATEGORY_IMAGE_ID);
+    }
+
+    public function productsOfCategory() {
+        return $this->hasMany(
+            related: Product::class,
+            foreignKey: Product::CATEGORY_ID,
+            localKey: self::ID
+        );
+    }
+
+    public static function getProductsByCategory(int $categoryId) {
+        try {
+            $category = self::findOrFail($categoryId);
+
+            return $category->productsOfCategory->map(function ($product) {
+                return Product::getAdditionalProductInformation($product);
+            });
+
+        } catch(Exception) {
+            return [];
+        }
     }
 }

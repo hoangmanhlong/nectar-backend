@@ -33,9 +33,6 @@ class Product extends Model
 
     const REVIEW = 'review'; // Float - General reviews of people about the product
 
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
-
     const KEYWORD = 'keyword';
 
     protected $table = self::TABLE_NAME;
@@ -51,25 +48,72 @@ class Product extends Model
     {
         try {
             return self::all()->map(function ($product) {
-                return self::convertProductImage($product);
+                return self::getAdditionalProductInformation(product: $product, canImage: true);
             });
         } catch (Exception) {
             return [];
         }
     }
 
-    public function thumbnail()
+    public function category()
     {
-        return $this->hasOne(ProductImage::class, ProductImage::PRODUCT_ID, self::ID);
+        return $this->hasOne(
+            related: ProductCategory::class,
+            foreignKey: ProductCategory::ID,
+            localKey: self::CATEGORY_ID
+        );
     }
 
-    public static function getProductById(int $id)
+    public static function getAdditionalProductInformation(Product $product, bool $canImage = true): Product
+    {
+        $product->category = $product->category;
+
+        $review = $product->ratings()->avg(ProductRating::RATING) ?? 0;
+
+        $isFavorite = null;
+
+        $ratingOfMe = 0;
+
+        if ($canImage) $product = self::convertProductImage($product);
+
+        $userData = AppUtils::getUserData();
+
+        if ($userData !== null) {
+            $isFavorite = $userData->favoriteProducts()
+                ->where(FavoriteProduct::PRODUCT_ID, $product->id)
+                ->exists();
+
+            $ratingOfMe = $userData->ratedProducts()
+                ->where(ProductRating::PRODUCT_ID, $product->id)
+                ->value(ProductRating::RATING) ?? 0;
+        }
+
+        $product->review = round($review, 1);
+        $product->is_favorite = $isFavorite;
+        $product->rating = $ratingOfMe;
+
+        return $product;
+    }
+
+    public function thumbnail()
+    {
+        return $this->hasOne(
+            related: ProductImage::class,
+            foreignKey: ProductImage::PRODUCT_ID,
+            localKey: self::ID
+        );
+    }
+
+    public static function getProductById(int $productId)
     {
         try {
             //findOrFail(): Phương thức này sẽ ném ra một ngoại lệ ModelNotFoundException nếu
             // không tìm thấy bản ghi, hữu ích trong trường hợp bạn muốn xử lý lỗi khi id không tồn tại.
-            $product = self::findOrFail($id);
-            return self::convertProductImage($product);
+            $product = self::findOrFail($productId);
+            return self::getAdditionalProductInformation(
+                product: $product,
+                canImage: true
+            );
         } catch (Exception) {
             return null;
         }
@@ -97,16 +141,17 @@ class Product extends Model
         return $product;
     }
 
-    public static function searchProduct(mixed $keyword) {
+    public static function searchProduct(mixed $keyword)
+    {
         try {
             return self::query()->where(
                 column: self::NAME,
                 operator: 'LIKE',
                 value: '%' . $keyword . '%'
             )->get()->map(function ($product) {
-                return self::convertProductImage($product);
+                return self::getAdditionalProductInformation(product: $product, canImage: true);
             });
-        } catch(Exception) {
+        } catch (Exception) {
             return [];
         }
     }
@@ -116,7 +161,8 @@ class Product extends Model
         return $this->belongsTo(BasketItem::class, BasketItem::PRODUCT_ID, self::ID);
     }
 
-    public function ratings() {
+    public function ratings()
+    {
         return $this->belongsToMany(
             related: UserData::class,
             table: ProductRating::TABLE_NAME,

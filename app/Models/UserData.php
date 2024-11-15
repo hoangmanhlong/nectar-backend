@@ -23,6 +23,12 @@ class UserData extends Model
 
     const AREA_ID = 'area_id';
 
+    const ADDRESS = 'address';
+
+    const AREA = 'area';
+
+    const ZONE = 'zone';
+
     protected $table = self::TABLE_NAME;
 
     protected $fillable = [
@@ -33,6 +39,7 @@ class UserData extends Model
     ];
 
     protected $hidden = [
+        self::ID,
         self::CREATED_AT,
         self::UPDATED_AT
     ];
@@ -84,6 +91,12 @@ class UserData extends Model
         );
     }
 
+    public function getFavoriteProducts() {
+        return $this->favoriteProducts->map(function ($product) {
+            return Product::getAdditionalProductInformation($product);
+        });
+    }
+
     public function basket() {
         return $this->hasOne(
             related: Basket::class,
@@ -106,6 +119,22 @@ class UserData extends Model
             related: ProductRating::class,
             foreignKey: ProductRating::USER_ID,
             localKey: self::ID
+        );
+    }
+
+    public function zone() {
+        return $this->hasOne(
+            related: Zone::class,
+            foreignKey: Zone::ID,
+            localKey: self::ZONE_ID
+        );
+    }
+
+    public function area() {
+        return $this->hasOne(
+            related: Area::class,
+            foreignKey: Area::ID,
+            localKey: self::AREA_ID
         );
     }
 }

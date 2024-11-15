@@ -47,7 +47,7 @@ class BasketController extends Controller
                 $product->quantity = $basketItem->quantity;
                 $totalPrice += $product->price * $basketItem->quantity;
                 $totalItems++;
-                return Product::convertProductImage($product);
+                return Product::getAdditionalProductInformation($product);
             });
 
             return AppResponse::success(
