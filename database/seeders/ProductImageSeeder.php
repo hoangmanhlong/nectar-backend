@@ -25,7 +25,7 @@ class ProductImageSeeder extends Seeder
 
                 // Create a new banner instance
                 $productImage = new ProductImage;
-                $productImage->name = ucfirst(pathinfo($fileName, PATHINFO_FILENAME));
+                $productImage->title = ucfirst(pathinfo($fileName, PATHINFO_FILENAME));
                 $productImage->image_url = Storage::url($image);
                 $productImage->product_id = $i;
                 $productImage->save(); // Save the image first to get its ID

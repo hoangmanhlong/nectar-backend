@@ -1,10 +1,11 @@
 <?php
 
-use App\Models\Product;
-use App\Models\ProductImage;
+use App\Models\OrderStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+
+use function Laravel\Prompts\table;
 
 return new class extends Migration
 {
@@ -13,11 +14,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(ProductImage::TABLE_NAME, function (Blueprint $table) {
+        Schema::create(OrderStatus::TABLE_NAME, function (Blueprint $table) {
             $table->id();
-            $table->string(ProductImage::TITLE);
-            $table->string(ProductImage::IMAGE_URL);
-            $table->foreignId(ProductImage::PRODUCT_ID)->constrained(Product::TABLE_NAME, Product::ID);
+            $table->string(OrderStatus::NAME);
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(ProductImage::TABLE_NAME);
+        Schema::dropIfExists(OrderStatus::TABLE_NAME);
     }
 };

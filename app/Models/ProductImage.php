@@ -10,7 +10,7 @@ class ProductImage extends Model
 
     const ID = 'id';
 
-    const NAME = 'name';
+    const TITLE = 'title';
 
     const IMAGE_URL = 'image_url';
  

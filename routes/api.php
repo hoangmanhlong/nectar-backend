@@ -7,6 +7,7 @@ use App\Http\Controllers\UserAccountController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BasketController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductCategoriesController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserDataController;
@@ -57,8 +58,10 @@ Route::middleware([ApiAuthMiddleware::class])->group(function () {
     Route::get('/user-location', [UserDataController::class, 'getLocation']);
     Route::get('/favorite-products', [ProductController::class, 'getFavoriteProducts']);
     Route::put('/favorite-product/{product_id}', [ProductController::class, 'favoriteProduct']);
-    Route::put('/product/rating', [ProductController::class, 'ratingProduct']);
+    Route::post('/product/rating', [ProductController::class, 'ratingProduct']);
     Route::get('/profile', [UserDataController::class, 'getProfile']);
+    Route::post('/checkout', [CheckoutController::class, 'checkout']);
+    Route::get('/total-product-in-cart', [BasketController::class, 'getNumberOfProductInBasket']);
 
     Route::prefix('basket')->group(function () {
         Route::get('/', BasketController::class);

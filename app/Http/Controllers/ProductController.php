@@ -159,8 +159,8 @@ class ProductController extends Controller
 
             // Get authenticated user data
             $userData = auth()->user()->userData;
-            $productId = $request->input(Product::ID);
-            $rating = $request->input(Product::RATING);
+            $productId = $request->input(ProductRating::PRODUCT_ID);
+            $rating = $request->input(ProductRating::RATING);
 
             // Update or create rating for the product
             $userData->ratings()->updateOrCreate(
@@ -188,12 +188,25 @@ class ProductController extends Controller
     }
 
     public function getProductsByCategory(int $categoryId) {
+        try {
+            $category = ProductCategory::getCategoryById($categoryId);
 
-        $products = ProductCategory::getProductsByCategory($categoryId);
-
-        return AppResponse::success(
-            status: AppResponse::SUCCESS_STATUS,
-            data: $products
-        );
+            if(!$category) throw new Exception;
+    
+            $products = ProductCategory::getProductsByCategory($category);
+    
+            return AppResponse::success(
+                status: AppResponse::SUCCESS_STATUS,
+                data: [
+                    ProductCategory::ID => $category->id,
+                    ProductCategory::NAME => $category->name,
+                    'products' => $products
+                ]
+            );
+        } catch(Exception) {
+            return AppResponse::success(
+                status: AppResponse::ERROR_STATUS
+            );
+        }
     }
 }

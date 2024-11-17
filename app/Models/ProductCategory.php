@@ -55,14 +55,19 @@ class ProductCategory extends Model
         );
     }
 
-    public static function getProductsByCategory(int $categoryId) {
+    public static function getCategoryById(int $categoryId) {
         try {
-            $category = self::findOrFail($categoryId);
+            return self::findOrFail($categoryId);
+        } catch (Exception) {
+            return null;
+        }
+    }
 
+    public static function getProductsByCategory(ProductCategory $category) {
+        try {
             return $category->productsOfCategory->map(function ($product) {
                 return Product::getAdditionalProductInformation($product);
             });
-
         } catch(Exception) {
             return [];
         }
