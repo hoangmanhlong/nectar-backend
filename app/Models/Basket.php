@@ -22,7 +22,7 @@ class Basket extends Model
         );
     }
 
-    function products() {
+    public function products() {
         return $this->hasMany(
             BasketItem::class,
             foreignKey: BasketItem::BASKET_ID,

@@ -18,6 +18,11 @@ class OrderProduct extends Model
 
     protected $table = self::TABLE_NAME;
 
+    protected $fillable = [
+        self::PRODUCT_ID,
+        self::QUANTITY
+    ];
+
     protected $hidden = [
         self::CREATED_AT,
         self::UPDATED_AT

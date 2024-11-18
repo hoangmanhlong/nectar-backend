@@ -137,4 +137,12 @@ class UserData extends Model
             localKey: self::AREA_ID
         );
     }
+
+    public function orders() {
+        return $this->hasMany(
+            related: Order::class,
+            foreignKey: Order::USER_ID,
+            localKey: self::ID
+        );
+    }
 }

@@ -4,6 +4,7 @@ use App\Models\DeliveryMethod;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\PaymentMethod;
+use App\Models\UserData;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,8 +18,7 @@ return new class extends Migration
     {
         Schema::create(Order::TABLE_NAME, function (Blueprint $table) {
             $table->id();
-            $table->double(Order::TOTAL_COST);
-            $table->integer(Order::ORDER_TIME)->default(time());
+            $table->foreignId(Order::USER_ID)->constrained(UserData::TABLE_NAME);
             $table->foreignId(Order::ORDER_STATUS_ID)->constrained(OrderStatus::TABLE_NAME);
             $table->foreignId(Order::PAYMENT_METHOD_ID)->constrained(PaymentMethod::TABLE_NAME);
             $table->foreignId(Order::DELIVERY_METHOD_ID)->constrained(DeliveryMethod::TABLE_NAME);
