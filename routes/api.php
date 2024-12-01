@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppFileController;
 use App\Http\Controllers\BannerController;
 use App\Http\Middleware\ApiAuthMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -18,8 +19,9 @@ Route::any('/', function () {
     return __(key: 'messages.app_name');
 });
 
-Route::fallback(function () {
-    return __(key: 'messages.fallback_route');
+Route::prefix('file')->group(function () {
+    Route::post('/upload', [AppFileController::class, 'upload']);
+    Route::get('/download/{filename}', [AppFileController::class, 'download']);
 });
 
 Route::post('/register', [UserAccountController::class, 'register']);
@@ -72,3 +74,7 @@ Route::middleware([ApiAuthMiddleware::class])->group(function () {
 });
 
 // ---------------------------------------------------------------------------------------
+
+Route::fallback(function () {
+    return __(key: 'messages.fallback_route');
+});
